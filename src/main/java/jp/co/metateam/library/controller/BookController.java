@@ -16,12 +16,12 @@ import jakarta.validation.Valid;
 import jp.co.metateam.library.model.BookMst;
 import jp.co.metateam.library.model.BookMstDto;
 import jp.co.metateam.library.service.BookMstService;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 書籍関連クラス
  */
-@Log4j2
+@Slf4j
 @Controller
 public class BookController {
     
@@ -50,5 +50,54 @@ public class BookController {
 
         return "book/add";
     }
-    
+
+
+
+    @PostMapping("/book/add")
+    public String add(
+            @Valid @ModelAttribute BookMstDto bookMstDto,
+            BindingResult result,
+            Model model) {
+
+        // バリデーションエラー
+        if (result.hasErrors()) {
+
+            if (result.hasFieldErrors("title")) {
+                model.addAttribute(
+                        "errTitle",
+                        result.getFieldError("title").getDefaultMessage());
+            }
+
+            if (result.hasFieldErrors("isbn")) {
+                model.addAttribute(
+                        "errISBN",
+                        result.getFieldError("isbn").getDefaultMessage());
+            }
+
+            model.addAttribute(
+                    "errorMessage",
+                    "書籍の登録に失敗しました");
+
+            return "book/add";
+        }
+
+        // ISBN重複チェック
+        if (bookMstService.selectByIsbn(bookMstDto.getIsbn()) != null) {
+
+            model.addAttribute(
+                    "errISBN",
+                    "登録済みのISBNです");
+
+            model.addAttribute(
+                    "errorMessage",
+                    "書籍の登録に失敗しました");
+
+            return "book/add";
+        }
+
+        // 保存
+        bookMstService.save(bookMstDto);
+
+        return "redirect:/book/index";
+    }
 }
