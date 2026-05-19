@@ -19,12 +19,16 @@ import jp.co.metateam.library.repository.BookMstRepository;
 public class BookMstService {
 
     private final BookMstRepository bookMstRepository;
-    
+
     @Autowired
     public BookMstService(BookMstRepository bookMstRepository){
         this.bookMstRepository = bookMstRepository;
     }
-    
+    // 受け取ったISBNを使ってDBから書籍情報を取得
+    public BookMst selectByIsbn(String isbn) {
+        return this.bookMstRepository.selectByIsbn(isbn);
+    }
+
     public List<BookMstDto> findAvailableWithStockCount() {
         List<BookMst> books = this.bookMstRepository.findLimitedBook();
         List<BookMstDto> bookMstDtoList = new ArrayList<BookMstDto>();
@@ -42,8 +46,16 @@ public class BookMstService {
 
         return bookMstDtoList;
     }
+
     
+
+    @Transactional
+    public void save(BookMstDto bookMstDto) {
+        
+        BookMst bookMst = new BookMst();
+        bookMst.setIsbn(bookMstDto.getIsbn());
+        bookMst.setTitle(bookMstDto.getTitle());
+        // データベースへの保存メソッド呼び出し
+        bookMstRepository.save(bookMst);
+    }
 }
-
-
-
